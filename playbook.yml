@@ -2,7 +2,7 @@
 - name: Testing nginx server
   hosts: srv1
   gather_facts: yes
-  # become: yes
+  become: yes
   vars:
     operation: 'install'
 
@@ -14,7 +14,6 @@
         name: nginx
         state: latest
       when: operation == "install"
-      become: yes
 
     - name: Ensure nginx is running
       tags: nginx,start,test
@@ -22,7 +21,6 @@
         name: nginx
         state: started
       when: operation == "install"
-      become: yes
 
     # nginx clean up
     - name: Check if nginx init script exists
@@ -30,7 +28,6 @@
         path: /etc/init.d/nginx
       register: nginx_init_script
       tags: nginx,cleanup
-      become: yes
 
     - name: Stop nginx service
       ansible.builtin.service:
@@ -39,7 +36,6 @@
       when:
         - operation != "install"
         - nginx_init_script.stat.exists
-      become: yes
       tags: nginx,cleanup
 
     - name: Remove nginx
@@ -52,7 +48,6 @@
         - nginx-common
         - nginx-core
       when: operation != "install"
-      become: yes
 
     # - name: Remove nginx files
     #   tags: nginx,cleanup
@@ -60,32 +55,32 @@
     #     path: '{{ item }}'
     #     state: absent
     #   loop:
-        # - /etc/nginx
-        # - /var/log/nginx
-        # - /etc/init.d/nginx
-        # - /var/www/html
+    # - /etc/nginx
+    # - /var/log/nginx
+    # - /etc/init.d/nginx
+    # - /var/www/html
 
-        # DIRS TO REMOVE
-        # - /etc/nginx
-        # - /var/log/nginx
-        # - /var/lib/nginx
-        # - /usr/share/doc/nginx
-        # - /usr/share/nginx
-        # - /usr/lib/nginx
-        # FILES TO REMOVE
-        # - /usr/sbin/nginx
-        # - /etc/logrotate.d/nginx
-        # - /etc/init.d/nginx
-        # - /etc/default/nginx
-        # - /etc/ufw/applications.d/nginx
+    # DIRS TO REMOVE
+    # - /etc/nginx
+    # - /var/log/nginx
+    # - /var/lib/nginx
+    # - /usr/share/doc/nginx
+    # - /usr/share/nginx
+    # - /usr/lib/nginx
+    # FILES TO REMOVE
+    # - /usr/sbin/nginx
+    # - /etc/logrotate.d/nginx
+    # - /etc/init.d/nginx
+    # - /etc/default/nginx
+    # - /etc/ufw/applications.d/nginx
 
-      # when: operation != "install"
-      # become: yes
+    # when: operation != "install"
 
 # debuggin install or uninstall
 - name: Install Debuggin Kit
   hosts: srv1
   gather_facts: no
+  become: yes
   vars:
     operation: 'install'
   tasks:
@@ -109,4 +104,3 @@
         - lsof
         - strace
         - dnsutils
-      become: yes
