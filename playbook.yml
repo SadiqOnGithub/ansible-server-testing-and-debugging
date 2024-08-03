@@ -1,13 +1,19 @@
 ---
 - name: Testing nginx server
   hosts: srv1
-  gather_facts: no
+  gather_facts: yes
+  # become: yes
+  vars:
+    operation: 'install'
+
   tasks:
-    - name: nginx
+    # nginx installation
+    - name: install nginx
       tags: nginx,install,test
       ansible.builtin.package:
         name: nginx
         state: latest
+      when: operation == "install"
       become: yes
 
     - name: Ensure nginx is running
@@ -15,29 +21,92 @@
       ansible.builtin.service:
         name: nginx
         state: started
+      when: operation == "install"
       become: yes
 
+    # nginx clean up
+    - name: Check if nginx init script exists
+      ansible.builtin.stat:
+        path: /etc/init.d/nginx
+      register: nginx_init_script
+      tags: nginx,cleanup
+      become: yes
+
+    - name: Stop nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: stopped
+      when:
+        - operation != "install"
+        - nginx_init_script.stat.exists
+      become: yes
+      tags: nginx,cleanup
+
+    - name: Remove nginx
+      tags: nginx,cleanup
+      ansible.builtin.package:
+        name: '{{ item }}'
+        state: absent
+      loop:
+        - nginx
+        - nginx-common
+        - nginx-core
+      when: operation != "install"
+      become: yes
+
+    - name: Remove nginx files
+      tags: nginx,cleanup
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - /etc/nginx
+        - /var/log/nginx
+        # - /etc/init.d/nginx
+        - /var/www/html
+
+        # DIRS TO REMOVE
+        # - /etc/nginx
+        # - /var/log/nginx
+        # - /var/lib/nginx
+        # - /usr/share/doc/nginx
+        # - /usr/share/nginx
+        # - /usr/lib/nginx
+        # FILES TO REMOVE
+        # - /usr/sbin/nginx
+        # - /etc/logrotate.d/nginx
+        # - /etc/init.d/nginx
+        # - /etc/default/nginx
+        # - /etc/ufw/applications.d/nginx
+
+      when: operation != "install"
+      become: yes
+
+# debuggin install or uninstall
 - name: Install Debuggin Kit
   hosts: srv1
   gather_facts: no
+  vars:
+    operation: 'install'
   tasks:
     - name: Debugging
       tags: debugging
       ansible.builtin.package:
-        name:
-          - vim
-          - iputils-ping
-          - net-tools
-          - curl
-          - wget
-          - telnet
-          - netcat
-          - htop
-          - traceroute
-          - git
-          - tcpdump
-          - lsof
-          - strace
-          - dnsutils
-        state: present
+        name: '{{ item }}'
+        state: "{{ 'latest' if operation == 'install' else 'absent' }}"
+      loop:
+        - vim
+        - iputils-ping
+        - net-tools
+        - curl
+        - wget
+        - telnet
+        - netcat
+        - htop
+        - traceroute
+        - git
+        - tcpdump
+        - lsof
+        - strace
+        - dnsutils
       become: yes
