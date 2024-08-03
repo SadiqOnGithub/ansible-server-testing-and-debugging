@@ -1,0 +1,43 @@
+---
+- name: Testing nginx server
+  hosts: srv1
+  gather_facts: no
+  tasks:
+    - name: nginx
+      tags: nginx,install,test
+      ansible.builtin.package:
+        name: nginx
+        state: latest
+      become: yes
+
+    - name: Ensure nginx is running
+      tags: nginx,start,test
+      ansible.builtin.service:
+        name: nginx
+        state: started
+      become: yes
+
+- name: Install Debuggin Kit
+  hosts: srv1
+  gather_facts: no
+  tasks:
+    - name: Debugging
+      tags: debugging
+      ansible.builtin.package:
+        name:
+          - vim
+          - iputils-ping
+          - net-tools
+          - curl
+          - wget
+          - telnet
+          - netcat
+          - htop
+          - traceroute
+          - git
+          - tcpdump
+          - lsof
+          - strace
+          - dnsutils
+        state: present
+      become: yes
