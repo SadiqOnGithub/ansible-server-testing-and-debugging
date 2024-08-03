@@ -1,7 +1,7 @@
 all:
   vars:
-    ansible_user: ansible
-    ansible_password: password
+    ansible_user: root
+    ansible_password: pass
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
 docker_servers:
